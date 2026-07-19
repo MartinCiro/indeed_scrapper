@@ -44,7 +44,7 @@ Crea un archivo `config.json` (puedes usar `example_config.json` como plantilla)
 ```json
 {
     "youtube": {
-        "default_query": "La felicidad qué - canserbero",
+        "default_query": "La felicidad que - canserbero",
         "xpath": {
             "icon_volumen": "//button[@class='ytp-volume-icon ytp-button' and (starts-with(@data-tooltip-title, 'Unmute') or @data-tooltip-title='Unmute (m)')]",
             "input_search": "//input[@name='search_query']",
@@ -94,10 +94,10 @@ La estructura actual del proyecto es minimalista y enfocada:
 .
 ├── config.json                 # ⚠️ Única fuente de verdad para XPaths, queries y directorio del navegador
 ├── controller/                 # Lógica de negocio central
-│   ├── BrowserManager.go       # 🌐 Gestor de Playwright (Anti-detección, ciclo de vida, persistencia)
+│   ├── BrowserManager.go       # 🌐 Gestor de Playwright (Anti deteccion, ciclo de vida, persistencia)
 │   ├── Config.go               # Configuración central (carga estricta desde JSON + env)
 │   ├── Helper.go               # Utilidades (lectura de archivos, búsqueda de ejecutables, expansión de rutas)
-│   └── Log.go                  # Sistema de logging thread-safe (procesos y errores)
+│   └── Log.go                  # Sistema de logging thread safe (procesos y errores)
 ├── example                     # Plantilla de variables de entorno (.env)
 ├── example_config.json         # Plantilla de configuración JSON
 ├── go.mod / go.sum             # Dependencias del proyecto
@@ -117,20 +117,20 @@ La estructura actual del proyecto es minimalista y enfocada:
 
 ```mermaid
 graph TD
-    A[Inicio: main.go] --> B[Cargar .env y Config.go]
-    B --> C[Leer config.json (Thread-safe)]
+    A[Inicio main.go] --> B[Cargar .env y Config.go]
+    B --> C["Leer config.json (Thread safe)"]
     C --> D[Inicializar BrowserManager]
-    D --> E{¿Navegador ya está vivo?}
-    E -->|Sí| F[Reutilizar contexto y página existente]
+    D --> E{Navegador ya esta vivo?}
+    E -->|Si| F[Reutilizar contexto y pagina existente]
     E -->|No| G[LaunchPersistentContext]
-    G --> H[Inyectar Stealth Script (Anti-detección)]
+    G --> H[Inyectar Stealth Script Anti deteccion]
     H --> I[Cargar perfil desde browser_user_directory]
-    I --> J[Obtener página limpia y lista]
-    F --> K[Ejecutar acciones en la página]
+    I --> J[Obtener pagina limpia y lista]
+    F --> K[Ejecutar acciones en la pagina]
     J --> K
-    K --> L[Registrar éxito/error en Log.go]
-    L --> M[Esperar señal de cierre Ctrl+C]
-    M --> N[Cleanup: Cerrar página, contexto y Playwright]
+    K --> L[Registrar exito o error en Log.go]
+    L --> M[Esperar senal de cierre Ctrl+C]
+    M --> N[Cleanup: Cerrar pagina, contexto y Playwright]
 ```
 
 ---
@@ -139,14 +139,14 @@ graph TD
 
 ```mermaid
 graph TB
-    subgraph "main.go (Bootstrap)"
+    subgraph "main.go Bootstrap"
         A[Instanciar Config]
         B[Inicializar BrowserManager]
-        C[Ejecutar Lógica de Navegación]
+        C[Ejecutar Logica de Navegacion]
         D[Graceful Shutdown]
     end
     
-    subgraph "controller/ (Servicios)"
+    subgraph "controller Servicios"
         E[Config.go]
         F[Helper.go]
         G[Log.go]
@@ -154,15 +154,15 @@ graph TB
     end
     
     subgraph "Archivos Locales"
-        I[(.env)]
-        J[(config.json)]
-        K[(~/.../Brave Profile)]
-        L[(logs/)]
+        I[.env]
+        J[config.json]
+        K[Brave Profile]
+        L[logs]
     end
     
-    subgraph "Playwright / Navegador"
+    subgraph "Playwright Navegador"
         M[Playwright Driver]
-        N[Brave / Chrome]
+        N[Brave o Chrome]
     end
     
     A --> E
@@ -185,9 +185,9 @@ graph TB
 ## 🔒 Seguridad y Buenas Prácticas
 
 1. **Configuración Estricta:** Las rutas sensibles del navegador y los selectores XPath se cargan **únicamente** desde `config.json`, evitando que se expongan o sobrescriban accidentalmente mediante variables de entorno.
-2. **Anti-detección:** El `BrowserManager` inyecta un script al inicio que elimina rastros de `webdriver`, simula plugins de Chrome y ajusta los headers HTTP para parecer un navegador legítimo.
+2. **Anti deteccion:** El `BrowserManager` inyecta un script al inicio que elimina rastros de `webdriver`, simula plugins de Chrome y ajusta los headers HTTP para parecer un navegador legítimo.
 3. **Aislamiento de Perfil:** Usa un directorio de usuario dedicado (definido en `config.json`), aislando las cookies y el estado de la sesión de tu navegación personal.
-4. **Thread-Safe Logging:** El sistema de `Log.go` utiliza `sync.Mutex` para garantizar que la escritura concurrente en los archivos de `procesos` y `errores` no cause corrupción de datos.
+4. **Thread Safe Logging:** El sistema de `Log.go` utiliza `sync.Mutex` para garantizar que la escritura concurrente en los archivos de `procesos` y `errores` no cause corrupción de datos.
 
 > **⚠️ Nota importante:** El bot está diseñado para usar el navegador **instalado en tu sistema** (vía `CHROME_PATH` o detección automática en `Helper.go`). No depende del Chromium empaquetado por Playwright, lo que permite usar extensiones reales (como bloqueadores de anuncios) instaladas en ese perfil de Brave.
 
@@ -196,4 +196,4 @@ graph TB
 ## 💡 Créditos
 
 - **Playwright para Go:** [`github.com/mxschmitt/playwright-go`](https://github.com/mxschmitt/playwright-go) (Comunidad oficial de Playwright).
-- **Refactorización:** Implementación de principios *Single Responsibility*, *Lazy Loading* con caché thread-safe y *Graceful Shutdown* en Go.
+- **Refactorización:** Implementación de principios *Single Responsibility*, *Lazy Loading* con caché thread safe y *Graceful Shutdown* en Go.
