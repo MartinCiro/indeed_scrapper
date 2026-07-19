@@ -1,0 +1,114 @@
+//@value[normalize-space(.) != 'FACTURA']   -> is diferent
+
+//input/@value -> Attribute text value
+ 
+//div[contains(h2/a, 'AGUAR')]  -> Si contiene parte de la palabra aguar
+
+//div/text()[contains(., 'búsqueda')] -> Si el texto extraido contiene la palabra clave 'búsqueda'
+
+(//section[contains(translate(., 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'aguar')] | //section[contains(translate(., 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'ron')])[1] -> Lo mismo que el de abajo
+
+(//*[@id="gallery-layout-container"]/div/section[contains(translate(., 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'ron')] 
+| //*[@id="gallery-layout-container"]/div/section[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'aguar')])[1] -> Ambos comparan entre mayuscula y minusculas
+
+//*[@class="tiendasjumboqaio-delivery-modal-3-x-iconDeliveryTrigger"] -> buscar en todo el html la clase
+
+//img[contains(@class, 'tiendasjumboqaio-delivery-modal-3-x-iconDeliveryTrigger')] -> Buscar por elemento del html
+
+//ul[contains(@class, 'productgrid--items')]//li[contains(.//h2, 'AGUARDIENTE')] -> Buscar en el h2 quienes lo tienen
+
+(//ul[contains(@class, 'productgrid--items')]//li[contains(translate(., 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'aguar')] | //ul[contains(@class, 'productgrid--items')]//li[contains(translate(., 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'ron')])[1] -> Buscar por clase y filtrar
+
+//*[@id="msidEntity_listbox"]/li[contains(., '900156264')] -> Contains basico
+
+//*[starts-with(@id, 'ui-id-')] -> Si el id empieza por "ui-id-"
+
+//*[@id="spanCountMessageIL"]/text()[normalize-space(.)='1'] -> si el contador es igual a 1
+
+//div[@id="fltAwardDetailFT"]/table/tbody/tr[contains(translate(normalize-space(.), 'ADJUDICATARIO', 'adjudicatario'), "adjudicatario")]/following-sibling::tr -> Seleccionar contenedores siguientes al solicitado
+
+//div[@id="fltAwardDetailFT"]/table/tbody/tr[contains(translate(normalize-space(.), 'ADJUDICATARIO', 'adjudicatario'), "adjudicatario")]/preceding-sibling::tr -> Seleccionar elementos que estan antes del elemento 
+
+//a[@id="idDay-1"]/ancestor::td -> referencia al padre, lo que edite se basara en filtro id y lo que ejecute se aplicaría en td NO en a
+
+//div[starts-with(@id, 'DimensionAttributeValue') and contains(@id, '_input')] -> Empieza con el id y contiene
+
+//div[contains(translate(text(), 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZÁÉÍÓÚ', 'abcdefghijklmnñopqrstuvwxyzáéíóú'), 'AMAZONAS')] -> capitaliza la palabra
+
+//div[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZÁÉÍÓÚ', 'abcdefghijklmnñopqrstuvwxyzáéíóú'), 'caquetá')] -> sin tilde no reconoce
+
+//td[@data-handler="selectDay" and contains(a/ancestor::td, '1')] -> selecciona el padre de a cuyo valor contenga 1
+//div/table/tbody/tr/td/span/ancestor::td
+
+////input[@name="form:j_idt139:findMaestroconsecutivo" and ancestor::div[@id="form:popupMaestroFindModalDialog" and contains(@style, "display: block;")]] -> Enfasis en el input (hijo) cuyo padre es display block
+
+//variantes
+
+//div[starts-with(@class, 'containCombo') and contains(translate(text(), 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'AMAZONAS')]
+
+//div[starts-with(@class, 'containCombo') and contains(translate(text, 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'AMAZONAS')]
+//div[starts-with(@class, 'containCombo') and contains(translate(., 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ', 'abcdefghijklmnñopqrstuvwxyz'), 'AMAZONAS')]
+
+//option[contains(normalize-space(text()), 'Aprendiz')]
+
+//select[@id="seleccionRol:roles"]
+
+//div[@data-original-title="Lista de Roles"]
+//span[contains(normalize-space(text()), 'Inscripción')]
+
+//form[@id="foo"]/preceding-sibling::form//select[@value='5']
+//form[@id="foo"]/preceding-sibling::form//select/option[1]
+
+//input[@name="seleccionRol_SUBMIT"]/preceding-sibling::div
+
+//input[@name="seleccionRol_SUBMIT"]/preceding-sibling::div//option[1]
+
+//span[contains(normalize-space(text()), 'Inscripción')]/preceding-sibling::div//option[1]
+
+//tr[contains(translate(normalize-space(.), 'ADJUDICATARIO', 'adjudicatario'), "adjudicatario")]/preceding-sibling::tr 
+
+//h2[contains(translate(normalize-space(.), 'ESTADO DEL CERTIFICADO', 'estado del certificado'), 'adjudicatario')]/preceding-sibling::table
+
+//a[@href='../certificacion/consultarcertificaciones/consultarCertificaciones.faces?menId=65&fwkmenu=si']
+
+//span[contains(normalize-space(text()), 'TECNÓLOGO EN ANALISIS Y DESARROLLO DE SOFTWARE.')]/ancestor::tr
+
+//span[contains(normalize-space(text()), 'Certificación')]/ancestor::a
+//span[contains(normalize-space(text()), 'Certificación')]/ancestor::a/following-sibling::ul//a
+
+//span[contains(normalize-space(text()), 'TECNÓLOGO EN ANALISIS Y DESARROLLO DE SOFTWARE.')]/ancestor::tr/td//img/ancestor::a
+
+//span[contains(., 'TECNÓLOGO EN ANALISIS Y DESARROLLO DE SOFTWARE.')]/ancestor::tr//a[.//img]
+
+//span[contains(., 'TECNÓLOGO EN ANALISIS')]/ancestor::tr//a[contains(@id, 'clConsultaCertificadosgenerados')]
+
+//div[contains(@class, 'toast-message') and contains(text(), 'El texto digitado no corresponde con la imagen')]
+
+//input[@id='UsuarioLogado_Login']
+
+//input[@id='UsuarioLogado_Password']
+
+//input[@id='btnIniciar']
+
+//td[starts-with(@class, 'fc-day') and contains(@class, 'fc-today')]/parent::tr -> los numero de la fila
+//td[starts-with(@class, 'fc-day') and contains(@class, 'fc-future')]
+
+//td[starts-with(@class, 'fc-day') and contains(@class, 'fc-future')][1]/@data-date
+
+//h2[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZÁÉÍÓÚ', 'abcdefghijklmnñopqrstuvwxyzáéíóú'), 'enero 2026')]/ancestor::div[starts-with(@class, 'fc-toolbar')]/following-sibling::div//div[contains(@class, 'fc-basic-view')]
+
+//td[contains(@class, 'fc-mon') and contains(@class, 'fc-day-number')]
+
+1. Días de la semana (Lun, Mar, Mié, Jue, Vie, Sáb, Dom): -> crear lista quemada
+//th[contains(@class, 'fc-day-header')]
+
+2. Números de día (29, 5, 12, 19, 26):
+//div[contains(@class, 'fc-row')][1]//td[contains(@class, 'fc-day-number')]
+
+3. Horarios de la primera fila:
+ a. //div[contains(@class, 'fc-row')][2]//a[contains(@class, 'fc-day-grid-event')][contains(@style, '#c1e6c5') or contains(@style, '#d0d0d0')] # Turnos
+
+ b. //div[contains(@class, 'fc-row')][3]//a[contains(@class, 'fc-day-grid-event')][contains(@style, '#bcb9d8')] # Break
+
+//div[@class='item-info' and contains(text(), 'Visualizar Calendario De Turnos')]
+//div[contains(@class, 'fc-row')]

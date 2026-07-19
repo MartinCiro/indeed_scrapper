@@ -1,0 +1,60 @@
+{
+    "youtube": {
+        "default_query": "La felicidad qué - canserbero",
+        "xpath":{
+            "icon_volumen": "//button[@class='ytp-volume-icon ytp-button' and (starts-with(@data-tooltip-title, 'Unmute') or @data-tooltip-title='Unmute (m)')]",
+            "input_search": "//input[@name='search_query']",
+            "first_video": "//ytd-video-renderer",
+            "btn_acp_cookies": "//button[contains(., 'Aceptar') or contains(., 'Accept') or contains(., 'Aceptar todas')]"
+        }
+    },
+    "speech": {
+        "commands": {
+            "saluda": {
+                "trigger_words": ["saluda", "saludar", "hola", "dime hola"],
+                "action": "/saluda",
+                "description": "Saluda al bot"
+            },
+            "reproduce": {
+                "trigger_words": ["reproduce", "pon", "toca", "play", "reproducir", "pon música"],
+                "action": "/play",
+                "description": "Reproduce música",
+                "parameters": {"type": "query"}
+            },
+            "pausa": {
+                "trigger_words": ["pausa", "pausar", "detén", "para", "detener"],
+                "action": "/pause",
+                "description": "Pausa la reproducción"
+            },
+            "continuar": {
+                "trigger_words": ["continuar", "reanudar", "sigue", "resume"],
+                "action": "/resume",
+                "description": "Reanuda la reproducción"
+            },
+            "volumen": {
+                "trigger_words": ["volumen", "sube volumen", "baja volumen", "volumen a", "set volume"],
+                "action": "/volume",
+                "description": "Ajusta volumen (ej: 'volumen 50')",
+                "parameters": {"type": "integer", "min": 0, "max": 100}
+            },
+            "ayuda": {
+                "trigger_words": ["ayuda", "comandos", "qué puedes hacer", "help", "que hacer"],
+                "action": "/help",
+                "description": "Muestra esta ayuda"
+            },
+            "salir": {
+                "trigger_words": ["salir", "exit", "terminar", "adiós", "hasta luego"],
+                "action": "/exit",
+                "description": "Sale del programa"
+            },
+            "buscar": {
+                "trigger_words": ["buscar", "search", "encuentra", "busca"],
+                "action": "/search",
+                "description": "Busca contenido (ej: 'buscar rock')"
+            }
+        }
+    },
+    "interctive": "false",
+    "browser_user_directory": "User folder",
+    "path_browser": "User ejecutable chrome"
+}
