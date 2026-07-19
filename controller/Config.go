@@ -1,14 +1,12 @@
-// controller/Config.go
 package controller
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
@@ -21,15 +19,28 @@ type Command struct {
 	Parameters   map[string]any `json:"parameters,omitempty"`
 }
 
+// ConfigData representa la estructura del archivo config.json
+type ConfigData struct {
+	YouTube struct {
+		DefaultQuery string            `json:"default_query"`
+		XPath        map[string]string `json:"xpath"`
+	} `json:"youtube"`
+	BrowserUserDirectory string `json:"browser_user_directory"`
+}
+
 // Config configuración del sistema
 type Config struct {
 	Headless        string
 	ChromePath      string
 	CookiesBasePath string
 	ConfigJSON      string
-	UserBrowserDir  string
-	Log             *Log
-	commandsCache   map[string]Command
+
+	// Cache de configuración JSON (Thread-safe)
+	configData *ConfigData
+	configMu   sync.Mutex
+
+	Log           *Log
+	commandsCache map[string]Command
 }
 
 // NewConfig crea una nueva instancia de Config
@@ -41,14 +52,83 @@ func NewConfig() *Config {
 		}
 	}
 
-	return &Config{
+	c := &Config{
 		Headless:        getEnvDefault("HEADLESS", "true"),
 		ChromePath:      getEnvDefault("CHROME_PATH", ""),
 		CookiesBasePath: getEnvDefault("COOKIES_PATH", "./cookies"),
 		ConfigJSON:      getEnvDefault("CONFIG_JSON", "./config.json"),
-		UserBrowserDir:  getEnvDefault("USER_BROWSER_DIR", "~/.config/BraveSoftware/Brave-Browser-Playwright"),
 		Log:             NewLog(),
 	}
+
+	// Cargar configuración JSON al inicio
+	c.loadConfigJSON()
+
+	return c
+}
+
+// loadConfigJSON carga y parsea el archivo config.json de forma segura y única
+func (c *Config) loadConfigJSON() {
+	c.configMu.Lock()
+	defer c.configMu.Unlock()
+
+	if c.configData != nil {
+		return // Ya está cargado en caché
+	}
+
+	data, err := os.ReadFile(c.ConfigJSON)
+	if err != nil {
+		c.Log.Comentario("WARNING", fmt.Sprintf("No se pudo leer %s: %v.", c.ConfigJSON, err))
+		c.configData = &ConfigData{}
+		return
+	}
+
+	var parsed ConfigData
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		c.Log.Comentario("WARNING", fmt.Sprintf("Error parseando %s: %v.", c.ConfigJSON, err))
+		c.configData = &ConfigData{}
+	} else {
+		c.configData = &parsed
+		c.Log.Comentario("INFO", "✅ Configuración cargada estrictamente desde config.json")
+	}
+}
+
+// GetUserBrowserDirectory retorna la ruta del directorio de usuario del navegador.
+// ⚠️ Carga ÚNICAMENTE desde config.json. No lee .env.
+func (c *Config) GetUserBrowserDirectory() string {
+	c.loadConfigJSON()
+
+	if c.configData != nil && strings.TrimSpace(c.configData.BrowserUserDirectory) != "" {
+		return expandUser(c.configData.BrowserUserDirectory)
+	}
+
+	// Fallback de seguridad mínimo solo para evitar crashes si el JSON está vacío,
+	// pero NUNCA lee el .env.
+	return expandUser("~/.config/BraveSoftware/Brave-Browser-Playwright")
+}
+
+// GetYouTubeQuery retorna la query por defecto para YouTube.
+// ⚠️ Carga ÚNICAMENTE desde config.json. No lee .env.
+func (c *Config) GetYouTubeQuery() string {
+	c.loadConfigJSON()
+
+	if c.configData != nil && strings.TrimSpace(c.configData.YouTube.DefaultQuery) != "" {
+		return c.configData.YouTube.DefaultQuery
+	}
+
+	return "" // Retorna vacío si no está en el JSON
+}
+
+// GetYouTubeXPath retorna el diccionario de XPaths para YouTube.
+// ⚠️ Carga ÚNICAMENTE desde config.json. No lee .env.
+func (c *Config) GetYouTubeXPath() map[string]string {
+	c.loadConfigJSON()
+
+	if c.configData != nil && len(c.configData.YouTube.XPath) > 0 {
+		return c.configData.YouTube.XPath
+	}
+
+	// Retorna mapa vacío si no está definido en el JSON
+	return make(map[string]string)
 }
 
 // GetChromePaths retorna lista de paths válidos para Chrome/Chromium
@@ -92,14 +172,6 @@ func (c *Config) ClearCookies() {
 	if _, err := os.Stat(cookiesPath); err == nil {
 		_ = os.Remove(cookiesPath)
 	}
-}
-
-// GetUserBrowserDirectory retorna la ruta del directorio de usuario del navegador
-func (c *Config) GetUserBrowserDirectory() string {
-	if c.UserBrowserDir == "" {
-		return expandUser("~/.config/BraveSoftware/Brave-Browser-Playwright")
-	}
-	return expandUser(c.UserBrowserDir)
 }
 
 // GetCommands retorna los comandos desde config.json o usa los defaults
@@ -186,80 +258,4 @@ func (c *Config) getDefaultCommands() map[string]Command {
 			Description:  "Apaga el ordenador",
 		},
 	}
-}
-
-// ──────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────
-
-func getEnvDefault(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
-func isExecutable(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	return !info.IsDir() && info.Mode()&0111 != 0
-}
-
-func findChromePaths() []string {
-	var paths []string
-	var candidates []string
-
-	switch runtime.GOOS {
-	case "linux":
-		candidates = []string{
-			"/usr/bin/brave-browser",
-			"/usr/bin/brave-browser-stable",
-			"/usr/bin/google-chrome",
-			"/usr/bin/google-chrome-stable",
-			"/usr/bin/chromium",
-			"/usr/bin/chromium-browser",
-			"/snap/bin/chromium",
-			"/opt/google/chrome/chrome",
-		}
-	case "darwin":
-		candidates = []string{
-			"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-			"/Applications/Chromium.app/Contents/MacOS/Chromium",
-		}
-	case "windows":
-		candidates = []string{
-			`C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`,
-			`C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe`,
-			`C:\Program Files\Google\Chrome\Application\chrome.exe`,
-			`C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`,
-		}
-	}
-
-	for _, p := range candidates {
-		if _, err := os.Stat(p); err == nil {
-			paths = append(paths, p)
-		}
-	}
-
-	return paths
-}
-
-func expandUser(path string) string {
-	if strings.HasPrefix(path, "~/") {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return path
-		}
-		return filepath.Join(home, path[2:])
-	}
-	return path
-}
-
-// isExecInPath verifica si un ejecutable está en el PATH
-func isExecInPath(name string) bool {
-	_, err := exec.LookPath(name)
-	return err == nil
 }

@@ -1,6 +1,5 @@
 {
     "youtube": {
-        "default_query": "La felicidad qué - canserbero",
         "xpath": {
             "icon_volumen": "//button[@class='ytp-volume-icon ytp-button' and (starts-with(@data-tooltip-title, 'Unmute') or @data-tooltip-title='Unmute (m)')]",
             "input_search": "//input[@name='search_query']",
@@ -125,6 +124,5 @@
             }
         }
     },
-    "interctive": "false",
     "browser_user_directory": "~/.config/BraveSoftware/Brave-Browser-Playwright"
 }

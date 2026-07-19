@@ -1,6 +1,6 @@
-# 🤖 Guía de Configuración: Bot de Telegram + Automatización de Navegador (Go + Playwright)
+# 🌐 Guía de Configuración: Automatización de Navegador con Go + Playwright
 
-Este proyecto es un bot de Telegram escrito en Go que combina **control remoto del sistema** con **automatización avanzada de navegadores** (Brave/Chrome) utilizando `playwright-go`. Está diseñado para controlar la reproducción de YouTube mediante comandos de texto o audio, manteniendo sesiones persistentes y evadiendo detecciones de bots.
+Este proyecto es una herramienta de automatización de navegadores (Brave/Chrome) escrita en Go, utilizando `playwright-go`. Está diseñada para interactuar con sitios web (como YouTube) manteniendo sesiones persistentes, evadiendo detecciones de bots y gestionando la configuración de forma estricta a través de archivos JSON.
 
 ---
 
@@ -19,224 +19,181 @@ Es necesario descargar el driver que permite a Go comunicarse con el navegador.
 go run github.com/mxschmitt/playwright-go/cmd/playwright@latest install
 ```
 
-### 3. Configuración de Variables de Entorno
-Crea un archivo `.env` en la raíz del proyecto (puedes basarte en un archivo `example`):
+### 3. Configuración de Variables de Entorno (`.env`)
+Crea un archivo `.env` en la raíz del proyecto (puedes basarte en el archivo `example`). Este archivo solo debe contener configuraciones base y rutas opcionales:
 
 ```bash
-# ==========================================
-# Configuración de Telegram
-# ==========================================
-TELEGRAM_TOKEN=tu_token_aqui
-TELEGRAM_CHAT=123456789
-ALLOWED_USERS=123456789,987654321
-SHELL_ALIASES=ll=ls -la,gs=git status
-
-# ==========================================
-# Configuración del Navegador (Playwright)
-# ==========================================
 # True = modo invisible (headless), False = mostrar ventana
 HEADLESS=true
 
 # Ruta al ejecutable (Opcional: si se deja vacío, busca Brave/Chrome automáticamente)
 CHROME_PATH=/usr/bin/brave-browser
 
-# Directorio para guardar cookies y estado de sesión (Persistent Context)
+# Directorio base para cookies (el archivo final será youtube_state.json)
 COOKIES_PATH=./cookies
 
-# Archivo de configuración para comandos y XPaths personalizados
+# Ruta al archivo de configuración JSON
 CONFIG_JSON=./config.json
 ```
 
-### 4. Ejecutar el Proyecto
+### 4. Configuración Estricta del Navegador (`config.json`)
+⚠️ **Importante:** Las rutas del perfil del navegador, las consultas por defecto y los selectores XPath se cargan **exclusivamente** desde este archivo. No se leen desde el `.env`.
+
+Crea un archivo `config.json` (puedes usar `example_config.json` como plantilla):
+
+```json
+{
+    "youtube": {
+        "default_query": "La felicidad qué - canserbero",
+        "xpath": {
+            "icon_volumen": "//button[@class='ytp-volume-icon ytp-button' and (starts-with(@data-tooltip-title, 'Unmute') or @data-tooltip-title='Unmute (m)')]",
+            "input_search": "//input[@name='search_query']",
+            "first_video": "//ytd-video-renderer",
+            "btn_acp_cookies": "//button[contains(., 'Aceptar') or contains(., 'Accept') or contains(., 'Aceptar todas')]"
+        }
+    },
+    "interctive": "false",
+    "browser_user_directory": "~/.config/BraveSoftware/Brave-Browser-Playwright"
+}
+```
+
+### 5. Ejecutar el Proyecto
 
 ```bash
 # Desarrollo
 go run main.go
 
 # Producción (Compilar y ejecutar)
-go build -o bot-telegram main.go
-./bot-telegram
+go build -o browser-bot main.go
+./browser-bot
 ```
 
 ---
 
-## 🛠️ Procesos de Automatización y Compilación
+## 🛠️ Procesos de Compilación
 
 ### Compilación Multiplataforma
 ```bash
 # Linux x86_64
-GOOS=linux GOARCH=amd64 go build -o bot-telegram-linux-amd64 main.go
+GOOS=linux GOARCH=amd64 go build -o browser-bot-linux-amd64 main.go
 
 # Linux ARM64 (Raspberry Pi)
-GOOS=linux GOARCH=arm64 go build -o bot-telegram-linux-arm64 main.go
+GOOS=linux GOARCH=arm64 go build -o browser-bot-linux-arm64 main.go
 
 # Windows x86_64
-GOOS=windows GOARCH=amd64 go build -o bot-telegram-windows-amd64.exe main.go
+GOOS=windows GOARCH=amd64 go build -o browser-bot-windows-amd64.exe main.go
 ```
-
-### Actualizar dependencias (Desarrollo)
-Si añades nuevos paquetes, sincroniza el vendor o el `go.mod`:
-```bash
-go mod tidy
-go mod vendor # Si usas directorio vendor
-```
-
----
-
-## 🤖 Funcionalidades del Bot
-
-### 1. Control Remoto del Sistema
-| Comando | Descripción |
-|---------|-------------|
-| `/start` | Muestra información completa: IP pública, local, red, OS y arquitectura. |
-| `/estado` | Muestra solo información de red. |
-| `/comando <cmd>` | Ejecuta un comando del sistema y retorna el resultado. |
-| `/up` | 🔄 Descarga e instala automáticamente la última versión desde GitHub Releases. |
-| `/ayuda` | Lista de comandos disponibles. |
-
-### 2. Automatización de Navegador (YouTube / Brave)
-El bot puede escuchar notas de voz o textos y traducirlos a acciones en el navegador:
-- **🎵 Reproducción:** "reproduce lofi hip hop", "busca música relajante".
-- **⏯️ Control:** "pausa", "continuar", "siguiente", "anterior".
-- **🔊 Ajustes:** "volumen 50", "pantalla completa".
-- **🛡️ Anti-detección:** Inyección de scripts *stealth* (elimina `navigator.webdriver`, simula plugins reales, headers HTTP realistas).
-- **💾 Sesión Persistente:** Guarda cookies y estado de login en `./cookies/youtube_state.json` para no tener que iniciar sesión cada vez.
 
 ---
 
 ## 📂 Estructura del Proyecto
 
+La estructura actual del proyecto es minimalista y enfocada:
+
 ```text
-go-indeed/
-├── main.go                       # Bootstrap: instancia servicios, Playwright y arranca el bot
-├── go.mod / go.sum               # Dependencias del proyecto
-├── .env                          # Variables de entorno (NO subir a git)
-├── config.json                   # Configuración de comandos y XPaths de YouTube
-├── version.txt                   # Versión actual para auto-actualización
-├── /controller                   # Lógica de negocio (Servicios)
-│   ├── BrowserManager.go         # 🌐 Gestor de Playwright (Anti-detección, ciclo de vida)
-│   ├── Config.go                 # Configuración central (env, json, defaults)
-│   ├── FileUtils.go              # Utilidades: lectura JSON, búsqueda de ejecutables
-│   ├── Log.go                    # Sistema de logging thread-safe
-│   ├── NetworkInfo.go            # Servicio: información de red e IPs
-│   ├── CommandExecutor.go        # Servicio: ejecución de comandos del sistema
-│   ├── BotHandler.go             # Orquestador: ruteo de mensajes/audio a servicios
-│   └── Response.go               # DTO: respuesta estructurada (texto + botones)
-├── /build                        # Descargas temporales de actualizaciones (autogenerado)
-├── /cookies                      # Estado persistente del navegador (autogenerado)
-└── /logs                         # Directorio de logs (autogenerado)
-    ├── /procesos                 # Logs de procesos por fecha
-    └── /errores                  # Logs de errores por fecha
+.
+├── config.json                 # ⚠️ Única fuente de verdad para XPaths, queries y directorio del navegador
+├── controller/                 # Lógica de negocio central
+│   ├── BrowserManager.go       # 🌐 Gestor de Playwright (Anti-detección, ciclo de vida, persistencia)
+│   ├── Config.go               # Configuración central (carga estricta desde JSON + env)
+│   ├── Helper.go               # Utilidades (lectura de archivos, búsqueda de ejecutables, expansión de rutas)
+│   └── Log.go                  # Sistema de logging thread-safe (procesos y errores)
+├── example                     # Plantilla de variables de entorno (.env)
+├── example_config.json         # Plantilla de configuración JSON
+├── go.mod / go.sum             # Dependencias del proyecto
+├── LICENSE                     # Licencia del proyecto
+├── logs/                       # Directorio de logs (autogenerado)
+│   ├── errores/                # Logs de errores por fecha
+│   └── procesos/               # Logs de procesos por fecha
+├── main.go                     # Punto de entrada: inicializa config, navegador y ejecuta la lógica
+├── README.md                   # Esta documentación
+├── xpath_example.txt           # Referencia rápida de selectores XPath
+└── youtube_screenshot.png      # (Ejemplo) Captura generada durante las pruebas
 ```
 
 ---
 
-## 🔄 Diagrama de Configuración e Inicio
+## 🔄 Diagrama de Flujo de Ejecución
 
 ```mermaid
 graph TD
-    A[Inicio] --> B[Crear archivo .env]
-    B --> C[Configurar TOKEN y CHROME_PATH]
-    C --> D[Ejecutar: go mod tidy]
-    D --> E[Instalar Playwright: go run ... install]
-    E --> F{¿Desarrollo o Producción?}
-    F -->|Desarrollo| G[go run main.go]
-    F -->|Producción| H[go build -o bot-telegram]
-    H --> I[./bot-telegram]
-    G --> J[Bot Activo]
-    I --> J
-    J --> K[Inicializar BrowserManager]
-    K --> L{¿Existe Perfil Persistente?}
-    L -->|Sí| M[Reutilizar sesión y cookies]
-    L -->|No| N[Crear nuevo perfil en ~/.config/...]
-    M --> O[Esperando comandos de Telegram...]
-    N --> O
+    A[Inicio: main.go] --> B[Cargar .env y Config.go]
+    B --> C[Leer config.json (Thread-safe)]
+    C --> D[Inicializar BrowserManager]
+    D --> E{¿Navegador ya está vivo?}
+    E -->|Sí| F[Reutilizar contexto y página existente]
+    E -->|No| G[LaunchPersistentContext]
+    G --> H[Inyectar Stealth Script (Anti-detección)]
+    H --> I[Cargar perfil desde browser_user_directory]
+    I --> J[Obtener página limpia y lista]
+    F --> K[Ejecutar acciones en la página]
+    J --> K
+    K --> L[Registrar éxito/error en Log.go]
+    L --> M[Esperar señal de cierre Ctrl+C]
+    M --> N[Cleanup: Cerrar página, contexto y Playwright]
 ```
 
 ---
 
-## 🔄 Diagrama de Flujo
-
-```mermaid
-graph TD
-    A[Usuario envía Audio/Texto] --> B[BotHandler recibe mensaje]
-    B --> C{¿Es comando de navegador?}
-    C -->|No| D[Ejecutar como comando de sistema]
-    C -->|Sí| E[Transcribir/Parsear a comando interno]
-    
-    E --> F[BrowserManager.GetPage]
-    F --> G{¿Navegador inicializado?}
-    G -->|No| H[LaunchPersistentContext con Anti-detección]
-    H --> I[Inyectar Stealth Script]
-    I --> J[Cargar cookies si existen]
-    J --> K[Navegar a YouTube]
-    G -->|Sí| K
-    
-    K --> L[Ejecutar acción en Page]
-    L --> M{Acción}
-    M -->|/play| N[Buscar en input_search y clicar first_video]
-    M -->|/pause| O[Clic en btn_pause]
-    M -->|/volume| P[Ajustar slider de volumen]
-    
-    N --> Q[Responder al usuario en Telegram]
-    O --> Q
-    P --> Q
-    D --> Q
-```
-
----
-
-## 🔄 Diagrama de Arquitectura (Separación de Responsabilidades)
+## 🔄 Diagrama de Arquitectura
 
 ```mermaid
 graph TB
     subgraph "main.go (Bootstrap)"
         A[Instanciar Config]
-        B[Inyectar Dependencias]
-        C[Conectar Telegram API]
-        D[Loop de Updates]
+        B[Inicializar BrowserManager]
+        C[Ejecutar Lógica de Navegación]
+        D[Graceful Shutdown]
     end
     
     subgraph "controller/ (Servicios)"
-        E[Config & FileUtils]
-        F[Log]
-        G[BrowserManager]
-        H[CommandExecutor]
-        I[BotHandler]
+        E[Config.go]
+        F[Helper.go]
+        G[Log.go]
+        H[BrowserManager.go]
     end
     
-    subgraph "Recursos Externos"
-        J[Telegram API]
-        K[Brave/Chrome Local]
-        L[GitHub Releases API]
+    subgraph "Archivos Locales"
+        I[(.env)]
+        J[(config.json)]
+        K[(~/.../Brave Profile)]
+        L[(logs/)]
+    end
+    
+    subgraph "Playwright / Navegador"
+        M[Playwright Driver]
+        N[Brave / Chrome]
     end
     
     A --> E
-    B --> G
+    A --> I
+    E --> J
+    E --> G
     B --> H
-    B --> I
-    D --> J
-    J --> I
-    I --> G
-    I --> H
-    G --> K
-    I --> L
+    H --> E
+    H --> F
+    H --> M
+    M --> N
+    N --> K
+    C --> H
+    D --> H
+    H --> L
 ```
 
 ---
 
 ## 🔒 Seguridad y Buenas Prácticas
 
-1. **Anti-detección:** El `BrowserManager` inyecta un script al inicio que elimina rastros de `webdriver`, simula plugins de Chrome y ajusta los headers HTTP para parecer un navegador legítimo.
-2. **Aislamiento de Perfil:** Usa un directorio de usuario dedicado (`~/.config/BraveSoftware/Brave-Browser-Playwright` por defecto), aislando las cookies del bot de tu navegación personal.
-3. **Ejecución Segura:** Los comandos de sistema tienen un timeout de 30 segundos y un límite de caracteres para evitar bloqueos o saturación de la API de Telegram.
-4. **Lista Blanca:** Usa `ALLOWED_USERS` en el `.env` para restringir quién puede interactuar con el bot.
+1. **Configuración Estricta:** Las rutas sensibles del navegador y los selectores XPath se cargan **únicamente** desde `config.json`, evitando que se expongan o sobrescriban accidentalmente mediante variables de entorno.
+2. **Anti-detección:** El `BrowserManager` inyecta un script al inicio que elimina rastros de `webdriver`, simula plugins de Chrome y ajusta los headers HTTP para parecer un navegador legítimo.
+3. **Aislamiento de Perfil:** Usa un directorio de usuario dedicado (definido en `config.json`), aislando las cookies y el estado de la sesión de tu navegación personal.
+4. **Thread-Safe Logging:** El sistema de `Log.go` utiliza `sync.Mutex` para garantizar que la escritura concurrente en los archivos de `procesos` y `errores` no cause corrupción de datos.
 
-> **⚠️ Nota importante:** El bot está diseñado para usar el navegador **instalado en tu sistema** (vía `CHROME_PATH` o detección automática). No depende del Chromium empaquetado por Playwright, lo que reduce el tamaño y permite usar extensiones reales (como bloqueadores de anuncios) instaladas en ese perfil.
+> **⚠️ Nota importante:** El bot está diseñado para usar el navegador **instalado en tu sistema** (vía `CHROME_PATH` o detección automática en `Helper.go`). No depende del Chromium empaquetado por Playwright, lo que permite usar extensiones reales (como bloqueadores de anuncios) instaladas en ese perfil de Brave.
 
 ---
 
 ## 💡 Créditos
 
 - **Playwright para Go:** [`github.com/mxschmitt/playwright-go`](https://github.com/mxschmitt/playwright-go) (Comunidad oficial de Playwright).
-- **Migración y Refactorización:** Implementación de principios *Single Responsibility*, *Dependency Injection* y *Graceful Shutdown* en Go.
+- **Refactorización:** Implementación de principios *Single Responsibility*, *Lazy Loading* con caché thread-safe y *Graceful Shutdown* en Go.
