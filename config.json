@@ -1,128 +1,23 @@
 {
-    "youtube": {
+    "indeed": {
+        "url": "https://co.indeed.com",
         "xpath": {
-            "icon_volumen": "//button[@class='ytp-volume-icon ytp-button' and (starts-with(@data-tooltip-title, 'Unmute') or @data-tooltip-title='Unmute (m)')]",
-            "input_search": "//input[@name='search_query']",
-            "first_video": "//ytd-video-renderer",
-            "btn_acp_cookies": "//button[contains(., 'Aceptar') or contains(., 'Accept') or contains(., 'Aceptar todas')]"
+            "btn_ingresar_login": "(//a[contains(text(), 'Ingresar')])[1]",
+            "input_correo": "//input[@name='__email']",
+            "btn_continuar": "(//button[@type='submit' and contains(normalize-space(), 'Continuar')])[1]",
+            "btn_iniciar_codigo": "//a[contains(translate(., 'INICIARSESIOÓN', 'iniciarsesioón'), 'iniciar')]",
+            "btn_ingresar_code": "//label[contains(translate(., 'INGRESARCÓODIGO', 'ingresarcóodigo'), 'código')]",
+            "input_code": "//label[contains(translate(., 'INGRESARCÓODIGO', 'ingresarcóodigo'), 'código')]/following-sibling::span/input",
+            "btn_ingresar": "//a[contains(., 'No tienes')]/parent::div/preceding-sibling::button",
+            "btn_ahora_no": "//a[contains(translate(., 'AHORA', 'ahora'), 'ahora')]",
+            "btn_bookmark_add": "//button[contains(., 'Aceptar') or contains(., 'Accept') or contains(., 'Aceptar todas')]"
+        },
+        "search": {
+            "input_what": "//input[@name='q']",
+            "input_where": "//input[@name='l']",
+            "btn_search": "//button[@type='submit' and contains(normalize-space(), 'Buscar')]"
         }
     },
-    "speech": {
-        "commands": {
-            "saluda": {
-                "trigger_words": [
-                    "saluda",
-                    "saludar",
-                    "hola",
-                    "dime hola"
-                ],
-                "action": "/saluda",
-                "description": "Saluda al bot"
-            },
-            "reproduce": {
-                "trigger_words": [
-                    "reproduce",
-                    "pon",
-                    "toca",
-                    "play",
-                    "reproducir",
-                    "pon música",
-                    "buscar",
-                    "search",
-                    "encuentra",
-                    "busca"
-                ],
-                "action": "/play",
-                "description": "Reproduce música",
-                "parameters": {
-                    "type": "query"
-                }
-            },
-            "pausa": {
-                "trigger_words": [
-                    "pausa",
-                    "pausar",
-                    "detén",
-                    "para",
-                    "detener"
-                ],
-                "action": "/pause",
-                "description": "Pausa la reproducción"
-            },
-            "continuar": {
-                "trigger_words": [
-                    "continuar",
-                    "reanudar",
-                    "sigue",
-                    "resume"
-                ],
-                "action": "/resume",
-                "description": "Reanuda la reproducción"
-            },
-            "siguiente": {
-                "trigger_words": [
-                    "siguiente",
-                    "next",
-                    "siguiente video",
-                    "salta"
-                ],
-                "action": "/next",
-                "description": "Reproduce el siguiente video"
-            },
-            "anterior": {
-                "trigger_words": [
-                    "anterior",
-                    "prev",
-                    "anterior video",
-                    "atrás",
-                    "retrocede"
-                ],
-                "action": "/prev",
-                "description": "Reproduce el video anterior"
-            },
-            "pantalla completa": {
-                "trigger_words": [
-                    "pantalla completa",
-                    "full screen",
-                    "fullscreen",
-                    "ampliar"
-                ],
-                "action": "/fullscreen",
-                "description": "Activa pantalla completa"
-            },
-            "volumen": {
-                "trigger_words": [
-                    "volumen",
-                    "sube volumen",
-                    "baja volumen",
-                    "volumen a",
-                    "set volume"
-                ],
-                "action": "/volume",
-                "description": "Ajusta volumen (ej: 'volumen 50')",
-                "parameters": {
-                    "type": "integer",
-                    "min": 0,
-                    "max": 100
-                }
-            },
-            "ayuda": {
-                "trigger_words": [
-                    "ayuda",
-                    "comandos",
-                    "qué puedes hacer",
-                    "help",
-                    "que hacer"
-                ],
-                "action": "/help",
-                "description": "Muestra esta ayuda"
-            },
-            "apagar": {
-                "trigger_words": ["apagar", "apaga", "shutdown", "apagar pc", "apagar equipo", "apagar computadora", "salir", "adios", "apagate", "cierra todo", "basta", "exit", "terminar", "adiós", "hasta luego"],
-                "action": "/shutdown",
-                "description": "Apaga el ordenador"
-            }
-        }
-    },
+    "users": ["martinciro11@gmail.com"],
     "browser_user_directory": "~/.config/BraveSoftware/Brave-Browser-Playwright"
 }

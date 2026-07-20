@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -81,4 +83,46 @@ func expandUser(path string) string {
 func isExecInPath(name string) bool {
 	_, err := exec.LookPath(name)
 	return err == nil
+}
+
+// loadConfigJSON carga y parsea el archivo config.json de forma segura y única
+func (c *Config) loadConfigJSON() {
+	c.configMu.Lock()
+	defer c.configMu.Unlock()
+
+	if c.configData != nil {
+		return
+	}
+
+	data, err := os.ReadFile(c.ConfigJSON)
+	if err != nil {
+		c.Log.Comentario("WARNING", fmt.Sprintf("No se pudo leer %s: %v.", c.ConfigJSON, err))
+		c.configData = &ConfigData{}
+		return
+	}
+
+	var parsed ConfigData
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		c.Log.Comentario("WARNING", fmt.Sprintf("Error parseando %s: %v.", c.ConfigJSON, err))
+		c.configData = &ConfigData{}
+	} else {
+		c.configData = &parsed
+		c.Log.Comentario("INFO", "✅ Configuración cargada estrictamente desde config.json")
+	}
+}
+
+// ExtractUsername obtiene el nombre de usuario del correo para usarlo en la ruta
+// Ej: "a@gmail.com" -> "a", "b.gmail.com" -> "b"
+func ExtractUsername(email string) string {
+	parts := strings.Split(email, "@")
+	username := parts[0]
+
+	// Fallback si no tiene '@' (ej: "b.gmail.com")
+	if username == email {
+		partsDot := strings.Split(email, ".")
+		username = partsDot[0]
+	}
+
+	// Reemplazar puntos por guiones bajos para nombres de carpeta seguros
+	return strings.ReplaceAll(username, ".", "_")
 }

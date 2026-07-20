@@ -15,7 +15,7 @@ import (
 type BrowserManager struct {
 	mu          sync.Mutex
 	pw          *playwright.Playwright
-	context     playwright.BrowserContext // ← SIN asterisco (*), es una interfaz
+	context     playwright.BrowserContext
 	page        playwright.Page
 	initialized bool
 	config      *Config

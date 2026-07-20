@@ -1,13 +1,4 @@
 {
-    "youtube": {
-        "default_query": "La felicidad qué - canserbero",
-        "xpath":{
-            "icon_volumen": "//button[@class='ytp-volume-icon ytp-button' and (starts-with(@data-tooltip-title, 'Unmute') or @data-tooltip-title='Unmute (m)')]",
-            "input_search": "//input[@name='search_query']",
-            "first_video": "//ytd-video-renderer",
-            "btn_acp_cookies": "//button[contains(., 'Aceptar') or contains(., 'Accept') or contains(., 'Aceptar todas')]"
-        }
-    },
     "speech": {
         "commands": {
             "saluda": {

@@ -2,80 +2,65 @@ package main
 
 import (
 	"fmt"
-	"go-indeed/controller"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/mxschmitt/playwright-go"
+	"go-indeed/controller"
 )
 
 func main() {
 	fmt.Println("==================================================")
-	fmt.Println("🌐 Gestor de Navegador Brave con Anti-Detección")
+	fmt.Println("🔍 Indeed Colombia - Automatización Multi-Usuario")
 	fmt.Println("==================================================")
 
-	// 1️⃣ Instanciar configuración
 	config := controller.NewConfig()
-
-	// 2️⃣ Instanciar BrowserManager (sin argumentos, la config va en Initialize)
 	browserManager := controller.NewBrowserManager()
 
-	config.Log.InicioProceso("BrowserManager")
+	config.Log.InicioProceso("IndeedManager")
 	config.Log.Comentario("SUCCESS", "Servicios inicializados")
 
-	// 3️⃣ Inicializar navegador (retorna la página lista para usar)
 	page, err := browserManager.Initialize(config)
 	if err != nil {
 		config.Log.Error(fmt.Sprintf("Error inicializando navegador: %v", err), "Browser")
-		fmt.Printf("❌ Error: %v\n", err)
 		os.Exit(1)
 	}
 
-	// 4️⃣ Usar la página directamente con la API de Playwright
-	fmt.Println("🔄 Navegando a YouTube...")
-	_, err = page.Goto("https://www.youtube.com", playwright.PageGotoOptions{
-		WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-	})
-	if err != nil {
-		config.Log.Error(fmt.Sprintf("Error navegando: %v", err), "Browser")
+	indeedManager := controller.NewIndeedManager(page, config)
+	users := config.GetIndeedUsers()
+
+	if len(users) == 0 {
+		config.Log.Comentario("WARNING", "⚠️ No hay usuarios configurados en config.json")
 	}
 
-	// Obtener título
-	title, err := page.Title()
-	if err == nil {
-		fmt.Printf("✅ Título de la página: %s\n", title)
+	// 🔄 LOOP PRINCIPAL: Iterar sobre cada usuario
+	for _, email := range users {
+		username := controller.ExtractUsername(email)
+
+		config.Log.Comentario("INFO", fmt.Sprintf("👤 Procesando usuario: %s (Carpeta: %s)", email, username))
+
+		// ✅ La decisión de omitir o hacer login la toma EnsureLoggedIn basándose en la UI
+		if err := indeedManager.EnsureLoggedIn(email, username); err != nil {
+			config.Log.Error(fmt.Sprintf("Error asegurando sesión para %s: %v", email, err), "Indeed")
+			continue // Pasar al siguiente usuario si uno falla
+		}
+
+		// --- AQUÍ PUEDES AGREGAR LA LÓGICA DE BÚSQUEDA PARA ESTE USUARIO ---
+		// if err := indeedManager.SearchJobs("Desarrollador Go", "Bogotá"); err == nil {
+		//     jobs, _ := indeedManager.GetJobListings()
+		//     fmt.Printf("Empleos para %s: %d\n", username, len(jobs))
+		// }
 	}
 
-	// Tomar screenshot
-	fmt.Println("📸 Tomando screenshot...")
-	_, err = page.Screenshot(playwright.PageScreenshotOptions{
-		Path:     playwright.String("youtube_screenshot.png"),
-		FullPage: playwright.Bool(true),
-	})
-	if err != nil {
-		config.Log.Error(fmt.Sprintf("Error en screenshot: %v", err), "Browser")
-	} else {
-		fmt.Println("✅ Screenshot guardado en youtube_screenshot.png")
-	}
-
-	// Ejecutar JavaScript
-	fmt.Println("🌐 Evaluando User-Agent...")
-	result, err := page.Evaluate("() => navigator.userAgent")
-	if err == nil {
-		fmt.Printf("✅ User-Agent: %v\n", result)
-	}
-
-	// 5️⃣ Shutdown graceful
+	// Shutdown graceful
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	fmt.Println("\n📱 Navegador activo... (Presiona Ctrl+C para cerrar)")
 	<-sigChan
 
-	// 6️⃣ Cleanup
 	config.Log.Comentario("INFO", "Recibida señal de terminación")
-	browserManager.Close() // Close no retorna error en nuestra implementación
-	config.Log.FinProceso("BrowserManager")
+	browserManager.Close()
+	config.Log.FinProceso("IndeedManager")
 	fmt.Println("\n✅ Programa finalizado")
 }
